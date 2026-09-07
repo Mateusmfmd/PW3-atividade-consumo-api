@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="catalogo container-fluid">
+    <div class="catalog-hero">
+        <div><span class="eyebrow">MUNDO FELINO</span><h2>Encontre sua raça favorita</h2><p>Conheça personalidades, origens e características de gatos do mundo todo.</p><div class="hero-actions"><a class="surprise-button" href="{{ url_for('surpresa') }}">✦ Me surpreenda</a><button class="compare-button" type="button" id="compareButton" disabled>Comparar selecionadas <span id="compareCount">0/2</span></button></div></div>
+        <div class="breed-count"><strong>{{ listaRacas|length }}</strong><span>de {{ totalRacas }} raças</span></div>
+    </div>
+    {% with mensagens = get_flashed_messages(with_categories=true) %}{% for categoria, mensagem in mensagens %}<div class="soft-notice" role="status">{{ mensagem }} <a href="{{ url_for('favoritos') }}">Ver favoritos →</a></div>{% endfor %}{% endwith %}
+    {% if erro_api %}<div class="soft-notice" role="status">{{ erro_api }}</div>{% endif %}
+    <form class="filter-bar" method="GET" action="{{ url_for('animals') }}" id="filterForm">
+        <div class="filter-heading"><span class="filter-icon">⌕</span><strong>Explorar catálogo</strong></div>
+        <div class="filter-fields">
+            <label class="search-field">Buscar por nome<input type="search" name="busca" value="{{ busca }}" placeholder="Ex.: Siamês, Maine..." autocomplete="off" id="breedSearch"></label>
+            <label>Origem<select name="origem"><option value="">Todas as origens</option>{% for item in origens %}<option value="{{ item }}" {% if item == origem_selecionada %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></label>
+            <label>Temperamento<select name="temperamento"><option value="">Todos os temperamentos</option>{% for item in temperamentos %}<option value="{{ item }}" {% if item == temperamento_selecionado %}selected{% endif %}>{{ item }}</option>{% endfor %}</label>
+            <label>Ordenar<select name="ordenacao"><option value="az" {% if ordenacao == 'az' %}selected{% endif %}>A → Z</option><option value="za" {% if ordenacao == 'za' %}selected{% endif %}>Z → A</option><option value="vida" {% if ordenacao == 'vida' %}selected{% endif %}>Expectativa de vida</option></select></label>
+            <button class="filter-button" type="submit">Aplicar</button>
+            {% if busca or origem_selecionada or temperamento_selecionado %}<a class="clear-filter" href="{{ url_for('animals') }}">Limpar</a>{% endif %}
+        </div>
+    </form>
+    <div class="catalog-toolbar"><div class="quick-filters"><span>Origens populares:</span>{% for item in origens[:6] %}<a href="{{ url_for('animals', origem=item) }}">{{ item }}</a>{% endfor %}</div><div class="view-switch" role="group" aria-label="Modo de visualização"><button type="button" class="view-button active" data-view="grid" aria-label="Visualização em cartões">▦</button><button type="button" class="view-button" data-view="list" aria-label="Visualização em lista">☷</button></div></div>
+    <div class="result-line">{% if busca or origem_selecionada or temperamento_selecionado %}{{ listaRacas|length }} resultado(s) encontrado(s){% else %}Todas as raças{% endif %}</div>
+    <div class="row g-4 catalog-grid" id="breedGrid">
+        {% for raca in listaRacas %}
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 breed-item" data-name="{{ raca.get('name', '')|lower }}" data-origin="{{ raca.get('origin', '')|lower }}" data-temperament="{{ raca.get('temperament', '')|lower }}"><article class="cat-card h-100 entrance-card"><div class="image-frame">{% if raca.get('image') and raca['image'].get('url') %}<img class="animal-image" src="{{ raca['image']['url'] }}" alt="{{ raca.get('name', 'Raça de gato') }}" loading="{% if loop.index <= 4 %}eager{% else %}lazy{% endif %}" decoding="async" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"><div class="image-fallback" aria-hidden="true"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div>{% else %}<div class="image-fallback visible" aria-hidden="true"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div>{% endif %}</div><div class="card-content d-flex flex-column"><div class="card-heading"><h5>{{ raca.get('name', 'Raça sem nome') }}</h5><label class="compare-check" title="Selecionar para comparação"><input type="checkbox" class="breed-check" value="{{ raca['id'] }}" aria-label="Selecionar {{ raca.get('name', 'raça') }} para comparar"><span></span></label></div><p><span class="location-dot">●</span> {{ raca.get('origin', 'Origem não informada') }}</p><div class="card-meta"><span>{{ raca.get('life_span', 'Vida não informada') }}{% if raca.get('life_span') and 'ano' not in raca.get('life_span', '').lower() %} anos{% endif %}</span><span>{{ raca.get('temperament', 'Personalidade única').split(',')[0] }}</span></div><div class="card-actions mt-auto"><a href="{{ url_for('animal_info', id=raca['id']) }}" class="info-button">Ver detalhes <span>→</span></a><form action="{{ url_for('favoritos') }}" method="POST" class="quick-favorite-form ajax-favorite"><input type="hidden" name="breed_id" value="{{ raca['id'] }}"><input type="hidden" name="nome" value="{{ raca.get('name', '') }}"><input type="hidden" name="origem" value="{{ raca.get('origin', '') }}"><input type="hidden" name="imagem" value="{{ raca.get('image', {}).get('url', '') if raca.get('image') else '' }}"><input type="hidden" name="next" value="{{ url_for('animals') }}"><input type="hidden" name="ajax" value="1"><button type="submit" class="favorite-icon" title="Adicionar aos favoritos" aria-label="Adicionar {{ raca.get('name', 'raça') }} aos favoritos">♡</button></form></div></div></article></div>
+        {% else %}<div class="empty-state"><div class="empty-cat"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div><h3>Nenhuma raça encontrada</h3><p>Tente combinar outros filtros para explorar o catálogo.</p><a class="info-button empty-action" href="{{ url_for('animals') }}">Ver todas as raças</a></div>{% endfor %}
+    </div>
+</section>
+<button class="back-to-top" id="backToTop" type="button" aria-label="Voltar ao topo">↑</button>
+<script>
+(function () {
+    const checks = [...document.querySelectorAll('.breed-check')], button = document.getElementById('compareButton'), count = document.getElementById('compareCount'), search = document.getElementById('breedSearch'), items = [...document.querySelectorAll('.breed-item')], grid = document.getElementById('breedGrid');
+    function updateCompare() { const selected = checks.filter(c => c.checked); count.textContent = `${selected.length}/2`; button.disabled = selected.length !== 2; }
+    checks.forEach(check => check.addEventListener('change', function () { if (checks.filter(c => c.checked).length > 2) this.checked = false; updateCompare(); }));
+    button.addEventListener('click', function () { const selected = checks.filter(c => c.checked).map(c => c.value); window.location.href = `{{ url_for('compare') }}?a=${selected[0]}&b=${selected[1]}`; });
+    search.addEventListener('input', function () { const term = this.value.trim().toLowerCase(); items.forEach(item => { item.hidden = term && !item.dataset.name.includes(term); }); });
+    document.querySelectorAll('.view-button').forEach(control => control.addEventListener('click', function () { document.querySelectorAll('.view-button').forEach(b => b.classList.remove('active')); this.classList.add('active'); grid.classList.toggle('list-view', this.dataset.view === 'list'); localStorage.setItem('catalog-view', this.dataset.view); }));
+    if (localStorage.getItem('catalog-view') === 'list') document.querySelector('[data-view="list"]').click();
+    const top = document.getElementById('backToTop'); window.addEventListener('scroll', () => top.classList.toggle('visible', window.scrollY > 500)); top.addEventListener('click', () => window.scrollTo({top: 0, behavior: 'smooth'}));
+    document.addEventListener('keydown', e => { if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); search.focus(); } });
+}());
+</script>
+{% endblock content %}

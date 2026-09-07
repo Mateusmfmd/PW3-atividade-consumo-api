@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="container details-page">
+    <a href="{{ url_for('animals') }}" class="back-link">← Voltar para raças</a>
+    {% if erro_api %}<div class="soft-notice mt-4" role="status">{{ erro_api }}</div>
+    {% elif not racaInfo %}<div class="empty-state mt-5"><div class="empty-cat"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div><h3>Essa raça não foi encontrada</h3><p>Volte ao catálogo para escolher outro gatinho.</p></div>
+    {% else %}
+    <div class="details-card mx-auto">
+        <div class="details-image-frame">{% if racaInfo.get('image') and racaInfo['image'].get('url') %}<img class="details-image" src="{{ racaInfo['image']['url'] }}" alt="{{ racaInfo.get('name', 'Raça de gato') }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"><div class="image-fallback" aria-hidden="true"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div>{% else %}<div class="image-fallback visible" aria-hidden="true"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div>{% endif %}</div>
+        <div class="details-body"><span class="eyebrow">RAÇA FELINA</span><div class="origin-stamp">{{ racaInfo.get('origin', 'Origem não informada') }}</div><h2>{{ racaInfo.get('name', 'Raça sem nome') }}</h2><p class="details-origin">● {{ racaInfo.get('origin', 'Origem não informada') }}</p>
+            <div class="detail-grid"><div><span>Temperamento</span><strong>{{ racaInfo.get('temperament', 'Não informado') }}</strong></div><div><span>Expectativa de vida</span><strong>{{ racaInfo.get('life_span', 'Não informada') }} anos</strong></div></div>
+            <div class="description"><span>Sobre a raça</span><p>{{ racaInfo.get('description', 'Informações não informadas.') }}</p></div>
+            <div class="details-actions">{% if racaInfo.get('wikipedia_url') %}<a href="{{ racaInfo['wikipedia_url'] }}" target="_blank" rel="noopener" class="secondary-button">Saiba mais ↗</a>{% endif %}<button type="button" class="secondary-button" id="shareButton" aria-label="Compartilhar ou copiar link desta raça">Compartilhar ↗</button><form action="{{ url_for('favoritos') }}" method="POST" class="ajax-favorite"><input type="hidden" name="breed_id" value="{{ racaInfo['id'] }}"><input type="hidden" name="nome" value="{{ racaInfo.get('name', '') }}"><input type="hidden" name="origem" value="{{ racaInfo.get('origin', '') }}"><input type="hidden" name="imagem" value="{{ racaInfo.get('image', {}).get('url', '') }}"><input type="hidden" name="ajax" value="1"><button type="submit" class="favorite-button" aria-label="Adicionar {{ racaInfo.get('name', 'raça') }} aos favoritos">☆ Adicionar aos favoritos</button></form></div>
+        </div>
+    </div>{% endif %}
+</section>
+{% if racaInfo %}<div class="toast-message" id="shareToast" role="status">Link copiado para a área de transferência.</div><script>document.getElementById('shareButton').addEventListener('click', async function () { const url = window.location.href; if (navigator.share) { await navigator.share({ title: '{{ racaInfo.get('name', 'Raça de gato') }}', url }); } else { await navigator.clipboard.writeText(url); const toast = document.getElementById('shareToast'); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2400); } });</script>{% endif %}
+{% endblock content %}

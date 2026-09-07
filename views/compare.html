@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Comparar raças · Catálogo de Gatos{% endblock %}
+{% block content %}
+<section class="container details-page">
+    <a href="{{ url_for('animals') }}" class="back-link">← Voltar para raças</a>
+    <div class="catalog-hero compact-hero"><div><span class="eyebrow">GUIA COMPARATIVO</span><h2>Compare duas raças</h2><p>Observe as diferenças lado a lado para escolher sua favorita.</p></div></div>
+    {% if racas|length == 2 %}
+    <div class="comparison-table-wrap"><table class="comparison-table"><thead><tr><th>Característica</th>{% for raca in racas %}<th><a href="{{ url_for('animal_info', id=raca['id']) }}">{{ raca.get('name', 'Raça') }}</a></th>{% endfor %}</tr></thead><tbody>{% for label, key in [('Origem','origin'),('Temperamento','temperament'),('Vida','life_span'),('Descrição','description')] %}<tr><th>{{ label }}</th>{% for raca in racas %}<td>{{ raca.get(key, 'Não informado') }}{% if key == 'life_span' %} anos{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty-state"><div class="empty-cat"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div><h3>Selecione duas raças</h3><p>Volte ao catálogo e marque duas raças para comparar.</p><a class="info-button compare-back" href="{{ url_for('animals') }}">Ir para o catálogo</a></div>{% endif %}
+</section>
+{% endblock content %}

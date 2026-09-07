@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="catalogo container-fluid">
+    <div class="catalog-hero compact-hero"><div><span class="eyebrow">SUA COLEÇÃO</span><h2>Meus favoritos</h2><p>Raças que conquistaram seu coração.</p><a class="export-button" href="{{ url_for('export_favoritos') }}" aria-label="Exportar favoritos em formato CSV">Exportar CSV ↓</a></div><div class="favorite-mark">♡</div></div>
+    {% with mensagens = get_flashed_messages(with_categories=true) %}{% for categoria, mensagem in mensagens %}<div class="soft-notice" role="status">{{ mensagem }}{% if categoria == 'success' %}<form class="undo-form" action="{{ url_for('undoFavorito') }}" method="POST"><button type="submit" class="undo-button">Desfazer</button></form>{% endif %}</div>{% endfor %}{% endwith %}
+    <div class="row g-4 catalog-grid">
+        {% for fav in listaFavoritos %}<div class="col-12 col-sm-6 col-lg-4 col-xl-3"><article class="cat-card h-100 entrance-card"><div class="image-frame">{% if fav.imagem %}<img class="animal-image" src="{{ fav.imagem }}" alt="{{ fav.nome }}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';"><div class="image-fallback" aria-hidden="true"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div>{% else %}<div class="image-fallback visible" aria-hidden="true"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div>{% endif %}<span class="image-shine"></span></div><div class="card-content d-flex flex-column"><h5>{{ fav.nome }}</h5><p><span class="location-dot">●</span> {{ fav.origem }}</p><div class="card-actions mt-auto"><a href="{{ url_for('animal_info', id=fav.breed_id) }}" class="info-button">Ver detalhes <span>→</span></a><form action="{{ url_for('deleteFavorito', id=fav.id) }}" method="POST"><button type="submit" class="remove-button">Remover</button></form></div></div></article></div>
+        {% else %}<div class="empty-state"><div class="empty-cat"><img src="{{ url_for('static', filename='img/cat-line.svg') }}" alt=""></div><h3>Sua coleção está esperando</h3><p>Adicione raças aos favoritos para vê-las aqui.</p></div>{% endfor %}
+    </div>
+</section>
+{% endblock content %}
